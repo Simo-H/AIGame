@@ -11,16 +11,16 @@ namespace Game
 {
     class Program
     {
-        public const int m_numberOfGames      = 10;
-        public const int m_boardRows          = 2;
-        public const int m_boardCols          = 2;
+        public const int m_numberOfGames      =25;
+        public const int m_boardRows          = 85;
+        public const int m_boardCols          = 84;
         public const int m_gameLevel          = 1;
         public const bool m_printAllResults   /*= false; */ = true;
         static void Main(string[] args)
         {
 
             char playerTurn         = '1';
-            char firstPlayer        = '1';
+            char firstPlayer        = '2';
             char winner             = ' ';
             Board board             = createEmptyBoard();
             int player1wins         = 0;
@@ -35,12 +35,13 @@ namespace Game
                     winner          = ' ';
                     playerTurn      = firstPlayer;
                     legalTurn       = true;
-                    //switchTurns(ref firstPlayer);
+                    switchTurns(ref firstPlayer);
                 }
                 do
                 {
                     try
                     {
+                        
                         if (playerTurn == '1')
                         {
                             legalTurn = Turn(board, playerTurn, true);             //Your Turn             
@@ -49,6 +50,7 @@ namespace Game
                         {
                             legalTurn = Turn(board, playerTurn, false);
                         }
+                        
                     }
                     catch(Exception e)
                     {
@@ -63,10 +65,16 @@ namespace Game
                 } while (winner == ' ');
 
                 if (winner == '1')
+                {
                     player1wins++;
+                Console.WriteLine("Win");
+                    
+                }
                 else if (winner == '2')
+                {
                     player2wins++;
-                Console.WriteLine(winner);
+                    Console.WriteLine("Lose");
+                }
             }
 
             if(m_printAllResults)
@@ -108,7 +116,7 @@ namespace Game
             if (timeLimit == false)
                 stopMilliseconds = 100;
             else
-                stopMilliseconds = 100;//timeByLevel();
+                stopMilliseconds = 50;//timeByLevel();
             System.GC.Collect();
             Stopwatch timer      = Stopwatch.StartNew();
             Tuple<int, int> move = new Tuple<int, int>(-1, -1);
@@ -117,6 +125,7 @@ namespace Game
             else if (player == '2')
                 move = (new Player2()).playYourTurn(new Board(board), new TimeSpan(0, 0, 0, 0, stopMilliseconds));
             timer.Stop();
+           // board.printTheBoard();
             TimeSpan timespan    = timer.Elapsed;
             if (timespan.TotalMilliseconds > stopMilliseconds ||
                 !board.isLegalMove(move.Item1, move.Item2))

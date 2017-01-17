@@ -68,12 +68,12 @@ namespace Game
             {
                 if (myTurn)
                 {
-                    this.IsWin = CheckForWinSituations();
+                    //this.IsWin = CheckForWinSituations();
 
                 }
                 else
                 {
-                    IsWin = !CheckForWinSituations();
+                    //IsWin = !CheckForWinSituations();
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace Game
             {
                 return true;
             }
-            if (Board._board[1, 1] == ' ' && Board._squaresLeft%2==1)
+            if (Board._board[1, 1] == ' ' && Board._squaresLeft%2==0)
             {
                 return true;
             }
@@ -140,14 +140,20 @@ namespace Game
                     IsWin = true;
             }
         }
-        public List<State> AllNextStates()
+        public List<State> AllNextStates(double timesup, Stopwatch timer)
         {
+            bool stop = false;
             List<State> nextMoves = new List<State>();
             State tmpBoard = new State(new Board(Board), SelectedSquere, myTurn);
-            for (int i = 0; i < Board._cols; i++)
+            for (int i = 0; i < Board._cols && !stop; i++)
             {
-                for (int j = 0; j < Board._rows; j++)
+                for (int j = 0; j < Board._rows && !stop; j++)
                 {
+                    if (timer.Elapsed.TotalMilliseconds > timesup)
+                    {
+                        stop = true;
+                        break;
+                    }
                     if (tmpBoard.Board.fillPlayerMove(j, i))
                     {
                         if (SelectedSquere == null)
@@ -162,7 +168,10 @@ namespace Game
                     }
                 }
             }
-            this.isExplored = true;
+            if (!stop)
+            {
+                this.isExplored = true;
+            }
             return nextMoves;
         }
     }
@@ -194,50 +203,130 @@ namespace Game
             MovesList = new List<State>();
             Tuple<int, int> toReturn = null;
             State initState = new State(board, null, true);
-            
+            //timesup = new TimeSpan(0, 0, 0, 0, 50);
             buildMinMax(initState, timesup);
-            //foreach (State state in MovesList)
-            //{
-            //    state.printState();
-            //}
             solveMinMax();
             foreach (State move in initState.childrenStates)
             {
                 if (move.IsWin == true)
                     toReturn = move.SelectedSquere;
             }
-            //stopwatch.Stop();
+            if (toReturn == null)
+            {
+                toReturn = naiveMove(board);
+            }
+            //Console.WriteLine(toReturn.ToString());
             return toReturn;
+        }
+
+        private Tuple<int, int> naiveMove(Board board)
+        {
+            //board.printTheBoard();
+            if (board._board[0, 1] == ' '  && board._squaresLeft > 1)
+            {
+                return new Tuple<int, int>(1,0);
+            }
+            if (board._board[1, 0] == ' ' && board._squaresLeft > 1)
+            {
+                return new Tuple<int, int>(0,1);
+            }
+            //even corner
+            if (board._board[1, 1] == ' ' && board._squaresLeft % 2 == 0)
+            {
+                if (board._board[0, 2] == 'X')
+                {
+                    int j = 2;
+                    while (j < board._cols && board._board[0, j] == 'X') { j++;}
+                    j--;
+                    return new Tuple<int, int>(0,j);
+                }
+                else
+                {
+                    int j = 2;
+                    while (j < board._rows && board._board[j, 0] == 'X') { j++; }
+                    j--;
+                    return new Tuple<int, int>(j, 0);
+                }
+                
+            }
+            //odd corner
+            else if (board._board[1, 1] == ' ' && board._squaresLeft % 2 == 1)
+            {
+                if (board._board[0, 2] == ' ')
+                {
+                    return new Tuple<int, int>(2,0);
+                }
+                else if(board._board[2, 0] == ' ')
+                {
+                    return new Tuple<int, int>(0,2);
+                }
+
+                if (board._board[0, 3] == 'X')
+                {
+                    //board.printTheBoard();
+                    int j = 3;
+                    while (j < board._cols && board._board[0, j] == 'X') { j++; }
+                    j--;
+                    return new Tuple<int, int>(0, j-1);
+                }
+                else
+                {
+                    int j = 3;
+                    while (j < board._rows && board._board[j, 0] == 'X') { j++; }
+                    j--;
+                    return new Tuple<int, int>(j - 1, 0);
+                }
+            }
+            
+
+            Tuple<int,int> toReturnTuple = new Tuple<int, int>(-1,-1);
+            int i = 0;
+            while (i < board._rows && i < board._cols && board._board[i, i] == 'X')
+            {
+                i++;
+            }
+            i--;
+            if (i +1< board._rows  && board._board[i+1, i] == 'X')
+            {
+                int j = i+1;
+                while (j < board._rows  && board._board[j, i] == 'X')
+                {
+                    j++;
+                }
+                j--;
+                toReturnTuple= new Tuple<int, int>(j, i);
+            }
+            else
+            if ( i+1 < board._cols && board._board[i, i+1] == 'X')
+            {
+                int j = i + 1;
+                while ( j < board._cols && board._board[i, j] == 'X')
+                {
+                    j++;
+                }
+                j--;
+                toReturnTuple = new Tuple<int, int>(i, j);
+            }
+            else
+            {
+                toReturnTuple = new Tuple<int, int>(1,1);
+            }
+            return toReturnTuple;
         }
 
         public void buildMinMax(State initState, TimeSpan timesup)
         {
-            Stopwatch s = Stopwatch.StartNew();
-
-            //bool timeIsUp = false;
-            MovesList.Add(initState);//(timer.Elapsed.TotalMilliseconds < timesup.TotalMilliseconds)
-            for (int j = 0; j < MovesList.Count; j++)
+            MovesList.Add(initState);
+            for (int j = 0; j < MovesList.Count && timer.Elapsed.TotalMilliseconds < timesup.TotalMilliseconds*0.5; j++)
             {
-                //long sTime = s.ElapsedMilliseconds;
-                //if (sTime > timesup.TotalMilliseconds)
-                //{
-                //    timeIsUp = true;
-                //}
-                MovesList[j].WinMove();
+                //MovesList[j].WinMove();
                 if (MovesList[j].IsWin != true)
                 {
-                    MovesList[j].childrenStates = MovesList[j].AllNextStates();
+                    MovesList[j].childrenStates = MovesList[j].AllNextStates(timesup.TotalMilliseconds*0.5,timer);
                     MovesList.AddRange(MovesList[j].childrenStates);
                 }
-
-
             }
-            //s.Stop();
-            //Console.WriteLine(s.ElapsedMilliseconds);
-            //Console.WriteLine();
         }
-
-
         public void solveMinMax()
         {
             for (int i = MovesList.Count - 1; i >= 0; i--)
