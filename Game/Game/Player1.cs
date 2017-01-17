@@ -68,12 +68,12 @@ namespace Game
             {
                 if (myTurn)
                 {
-                    //this.IsWin = CheckForWinSituations();
+                    this.IsWin = CheckForWinSituations();
 
                 }
                 else
                 {
-                    //IsWin = !CheckForWinSituations();
+                    IsWin = !CheckForWinSituations();
                 }
             }
         }
@@ -90,14 +90,14 @@ namespace Game
                 i++;
             }
             i--;
-            if (i>=1 && Board._board[i-1,i] == 'X' && Board._board[i , i-1] == 'X')
-            {
+            if (Board._squaresLeft == i * i)
                 return true;
-            }
-            if (Board._board[1, 1] == ' ' && Board._squaresLeft%2==0)
-            {
-                return true;
-            }
+            //if (i>=1 && Board._board[i-1,i] == 'X' && Board._board[i , i-1] == 'X')
+            //{
+            //    return true;
+            //}
+            
+            
             return null;
         }
         public void calculateWinOrLose()
@@ -233,16 +233,25 @@ namespace Game
             //even corner
             if (board._board[1, 1] == ' ' && board._squaresLeft % 2 == 0)
             {
-                if (board._board[0, 2] == 'X')
+                if (board._board[0, 2] == ' ')
                 {
-                    int j = 2;
+                    return new Tuple<int, int>(2, 0);
+                }
+                else if (board._board[2, 0] == ' ')
+                {
+                    return new Tuple<int, int>(0, 2);
+                }
+                else
+                if (board._board[0, 3] == 'X' )
+                {
+                    int j = 3;
                     while (j < board._cols && board._board[0, j] == 'X') { j++;}
                     j--;
                     return new Tuple<int, int>(0,j);
                 }
                 else
                 {
-                    int j = 2;
+                    int j = 3;
                     while (j < board._rows && board._board[j, 0] == 'X') { j++; }
                     j--;
                     return new Tuple<int, int>(j, 0);
@@ -278,7 +287,7 @@ namespace Game
                 }
             }
             
-
+            //prefect squere?
             Tuple<int,int> toReturnTuple = new Tuple<int, int>(-1,-1);
             int i = 0;
             while (i < board._rows && i < board._cols && board._board[i, i] == 'X')
@@ -306,6 +315,10 @@ namespace Game
                 }
                 j--;
                 toReturnTuple = new Tuple<int, int>(i, j);
+            }
+            else if (!(board._squaresLeft == i*i))
+            {
+                toReturnTuple = new Tuple<int, int>(i,i);
             }
             else
             {
