@@ -11,9 +11,9 @@ namespace Game
 {
     class Program
     {
-        public const int m_numberOfGames      = 15;
-        public const int m_boardRows          = 10;
-        public const int m_boardCols          = 9;
+        public const int m_numberOfGames      = 1;
+        public const int m_boardRows          = 99;
+        public const int m_boardCols          = 99;
         public const int m_gameLevel          = 5;
         public const bool m_printAllResults   /*= false; */ = true;
         static void Main(string[] args)
